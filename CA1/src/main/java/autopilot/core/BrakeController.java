@@ -49,7 +49,6 @@ public final class BrakeController {
             throw new IllegalStateException("braking is unavailable while the gearbox is in park");
         }
     }
-
     private void validatePressure(double requestedPressure) {
         if (!Double.isFinite(requestedPressure) || requestedPressure < 0.0) {
             throw new IllegalArgumentException("pressure must be a finite non-negative value");
