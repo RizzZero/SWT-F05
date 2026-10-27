@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.params.ParameterizedTest;
+
+import org.junit.jupiter.params.provider.CsvSource;
+
 class SteeringControllerTest {
 
     @Test
@@ -33,16 +37,6 @@ class SteeringControllerTest {
             assertThrows(IllegalArgumentException.class,
                     () -> steering.update(30, speed));
         }
-    }
-
-    @Test
-    void update_whenAngleIsWithinLimit_movesToTarget() {
-        SteeringController steering = new SteeringController();
-
-        double result = steering.update(30, 50);
-
-        assertEquals(30, result);
-        assertEquals(30, steering.getTargetAngleDegrees());
     }
 
     @Test
@@ -112,4 +106,24 @@ class SteeringControllerTest {
         assertEquals(0, second);
         assertEquals(0, steering.getTargetAngleDegrees());
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "30, 50, 30",
+            "60, 50, 60",
+            "100, 50, 60",
+            "-30, 50, -30",
+            "-100, 50, -60",
+            "200, 121, 60"
+    })
+    void update_whenAngleChanges_returnsExpectedAngle(
+            double angle, double speed, double expected) {
+
+        SteeringController steering = new SteeringController();
+
+        double result = steering.update(angle, speed);
+
+        assertEquals(expected, result);
+    }
+
 }

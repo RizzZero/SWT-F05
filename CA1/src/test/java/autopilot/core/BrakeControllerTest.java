@@ -5,6 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.params.ParameterizedTest;
+
+import org.junit.jupiter.params.provider.CsvFileSource;
+
+import org.junit.jupiter.params.provider.EnumSource;
+
 class BrakeControllerTest {
 
 
@@ -56,80 +62,6 @@ class BrakeControllerTest {
 
         assertThrows(NullPointerException.class,
                 () -> brake.apply(50, 50, null));
-    }
-
-
-
-    @Test
-    void apply_whenPressureIsBelowAbsThreshold_returnsRequestedPressure() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(79, 50, GearBox.Gear.D);
-
-        assertEquals(79, result);
-    }
-
-    @Test
-    void apply_whenPressureEqualsAbsThreshold_returnsRequestedPressure() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(80, 50, GearBox.Gear.D);
-
-        assertEquals(80, result);
-    }
-
-    @Test
-    void apply_whenPressureExceedsAbsThreshold_activatesAbs() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(81, 50, GearBox.Gear.D);
-
-        assertEquals(90, result);
-    }
-
-    @Test
-    void apply_whenPressureEqualsMaximum_returnsMaximum() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(100, 20, GearBox.Gear.D);
-
-        assertEquals(100, result);
-    }
-
-    @Test
-    void apply_whenPressureExceedsMaximum_limitsPressure() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(150, 20, GearBox.Gear.D);
-
-        assertEquals(100, result);
-    }
-
-    @Test
-    void apply_whenSpeedIsBelowAbsThreshold_doesNotActivateAbs() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(85, 29, GearBox.Gear.D);
-
-        assertEquals(85, result);
-    }
-
-    @Test
-    void apply_whenSpeedEqualsAbsThreshold_doesNotActivateAbs() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(85, 30, GearBox.Gear.D);
-
-        assertEquals(85, result);
-    }
-
-    @Test
-    void apply_whenSpeedExceedsAbsThreshold_activatesAbs() {
-        BrakeController brake = new BrakeController();
-
-        double result = brake.apply(85, 31, GearBox.Gear.D);
-
-        assertEquals(90, result);
     }
 
     @Test
@@ -199,16 +131,6 @@ class BrakeControllerTest {
     }
 
     @Test
-    void emergencyBrake_whenGearIsDrive_setsMaximumPressure() {
-        BrakeController brake = new BrakeController();
-
-        brake.emergencyBrake(GearBox.Gear.D);
-
-        assertEquals(100, brake.getPressure());
-        assertTrue(brake.isWarningActive());
-    }
-
-    @Test
     void emergencyBrake_whenGearIsPark_throwsException() {
         BrakeController brake = new BrakeController();
 
@@ -272,5 +194,33 @@ class BrakeControllerTest {
         double result = brake.apply(100, 50, GearBox.Gear.D);
 
         assertEquals(60, result);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "/brake-data.csv", numLinesToSkip = 1)
+    void apply_whenPressureAndSpeedChange_returnsExpectedPressure(
+            double pressure, double speed, double expected) {
+
+        BrakeController brake = new BrakeController();
+
+        double result = brake.apply(pressure, speed, GearBox.Gear.D);
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = GearBox.Gear.class,
+            names = {"R", "N", "D"}
+    )
+    void emergencyBrake_whenGearIsAllowed_activatesBraking(
+            GearBox.Gear gear) {
+
+        BrakeController brake = new BrakeController();
+
+        brake.emergencyBrake(gear);
+
+        assertEquals(100, brake.getPressure());
+        assertTrue(brake.isWarningActive());
     }
 }

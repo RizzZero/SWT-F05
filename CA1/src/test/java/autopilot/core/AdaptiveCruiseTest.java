@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.params.ParameterizedTest;
+
+import org.junit.jupiter.params.provider.ValueSource;
+
 class AdaptiveCruiseTest {
 
     @Test
@@ -35,24 +39,6 @@ class AdaptiveCruiseTest {
                 Double.doubleToRawLongBits(-0.0),
                 Double.doubleToRawLongBits(result)
         );
-    }
-
-    @Test
-    void safeDistanceFor_whenSpeedIsInvalid_throwsException() {
-        AdaptiveCruise cruise = new AdaptiveCruise(100);
-
-        double[] invalidSpeeds = {
-                -1,
-                -0.1,
-                Double.NaN,
-                Double.POSITIVE_INFINITY,
-                Double.NEGATIVE_INFINITY
-        };
-
-        for (double speed : invalidSpeeds) {
-            assertThrows(IllegalArgumentException.class,
-                    () -> cruise.safeDistanceFor(speed));
-        }
     }
 
     @Test
@@ -341,4 +327,20 @@ class AdaptiveCruiseTest {
         assertEquals(AdaptiveCruise.Mode.BRAKE, result.mode());
         assertEquals(10, result.amount());
     }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {
+            -1,
+            -0.1,
+            Double.NaN,
+            Double.POSITIVE_INFINITY,
+            Double.NEGATIVE_INFINITY
+    })
+    void safeDistanceFor_whenSpeedIsInvalid_throwsException(double speed) {
+        AdaptiveCruise cruise = new AdaptiveCruise(100);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> cruise.safeDistanceFor(speed));
+    }
+
 }

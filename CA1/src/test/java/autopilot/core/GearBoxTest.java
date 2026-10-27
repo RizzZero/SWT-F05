@@ -2,10 +2,20 @@
 package autopilot.core;
 
 import autopilot.exception.IllegalGearChangeException;
+
 import autopilot.sensor.SpeedSensor;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.params.ParameterizedTest;
+
+import org.junit.jupiter.params.provider.MethodSource;
+
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
 
 class GearBoxTest {
 
@@ -22,29 +32,6 @@ class GearBoxTest {
 
         gear.changeTo(GearBox.Gear.D);
         assertEquals(GearBox.Gear.D, gear.getCurrentGear());
-    }
-
-    @Test
-    void changeTo_whenSpeedBelow5_allowsReverse() {
-        SpeedSensor sensor = () -> 4.9;
-        GearBox gear = new GearBox(sensor);
-
-        gear.changeTo(GearBox.Gear.R);
-
-        assertEquals(GearBox.Gear.R, gear.getCurrentGear());
-    }
-
-    @Test
-    void changeTo_whenSpeedAtOrAbove5_rejectsReverse() {
-        double[] speeds = {5, 5.1};
-
-        for (double speed : speeds) {
-            SpeedSensor sensor = () -> speed;
-            GearBox gear = new GearBox(sensor);
-
-            assertThrows(IllegalGearChangeException.class,
-                    () -> gear.changeTo(GearBox.Gear.R));
-        }
     }
 
     @Test
@@ -117,4 +104,31 @@ class GearBoxTest {
         assertThrows(NullPointerException.class,
                 () -> gear.changeTo(null));
     }
+
+    static Stream<Arguments> reverseSpeeds() {
+        return Stream.of(
+                Arguments.of(0.0, true),
+                Arguments.of(4.9, true),
+                Arguments.of(5.0, false),
+                Arguments.of(5.1, false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("reverseSpeeds")
+    void changeTo_whenEnteringReverse_checksSpeedLimit(
+            double speed, boolean allowed) {
+
+        SpeedSensor sensor = () -> speed;
+        GearBox gear = new GearBox(sensor);
+
+        if (allowed) {
+            gear.changeTo(GearBox.Gear.R);
+            assertEquals(GearBox.Gear.R, gear.getCurrentGear());
+        } else {
+            assertThrows(IllegalGearChangeException.class,
+                    () -> gear.changeTo(GearBox.Gear.R));
+        }
+    }
+
 }
