@@ -1,0 +1,28 @@
+**/references/**
+
+# Java build outputs
+**/target/
+**/build/
+**/.gradle/
+*.class
+
+# Java archives and runtime crash logs
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# IDE and editor files
+**/.idea/
+**/*.iml
+**/.vscode/
+~$*
+*.swp
+*.swo
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
